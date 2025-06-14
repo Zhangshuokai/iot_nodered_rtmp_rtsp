@@ -35,7 +35,7 @@
 ### 3. UI组件库 [P0]
 #### 3.1 基础组件
 - **状态**: ✅ 已完成
-- **说明**: 实现了Button、Input、Card等基础组件
+- **说明**: 实现了Button、Input、Card等基础组件，采用shadcn风格
 
 #### 3.2 表单组件
 - **状态**: ✅ 已完成
@@ -66,6 +66,7 @@
   * TailwindCSS
   * React Hook Form
   * Zod
+  * shadcn风格组件
 - 修改文件: 
   * tailwind.config.js (新建)
   * postcss.config.js (新建)
@@ -74,4 +75,33 @@
   * app/auth/login/page.tsx (新建)
   * app/system/layout.tsx (新建)
   * app/system/custom/page.tsx (新建)
-  * lib/utils.ts (新建) 
+  * lib/utils.ts (新建)
+
+## 修复记录
+- 时间: 2025-06-14 13:53:51
+- 问题: 
+  * Google字体加载失败
+  * PostCSS配置问题
+- 解决方案:
+  * 移除Google字体依赖，改用系统字体
+  * 简化PostCSS配置，移除autoprefixer
+  * 更新UI组件为shadcn风格
+- 修改文件:
+  * app/layout.tsx (修改，移除Google字体)
+  * tailwind.config.js (修改，使用系统字体)
+  * postcss.config.js (简化配置)
+  * app/components/ui/* (更新为shadcn风格)
+
+## 修复记录2
+- 时间: 2025-06-14 13:58:44
+- 问题: 
+  * Tailwind与PostCSS配置冲突
+  * 错误信息：`It looks like you're trying to use tailwindcss directly as a PostCSS plugin`
+- 解决方案:
+  * 重新配置PostCSS，使用标准插件组合
+  * 添加postcss-import和tailwindcss/nesting插件
+  * 更新Tailwind配置，确保正确的内容路径
+  * 卸载不需要的@tailwindcss/postcss包
+- 修改文件:
+  * postcss.config.js (更新配置)
+  * tailwind.config.js (更新内容路径) 
