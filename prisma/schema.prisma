@@ -1,0 +1,919 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// 用户角色枚举
+enum UserRole {
+  /// 系统管理员
+  SYSTEM_ADMIN
+  /// 组织管理员
+  ORG_ADMIN
+  /// 普通用户
+  NORMAL_USER
+  /// 设备用户
+  DEVICE_USER
+}
+
+/// 设备类型枚举
+enum DeviceType {
+  /// 直连设备
+  DIRECT_DEVICE
+  /// 网关子设备
+  GATEWAY_CHILD
+}
+
+/// 配置类型枚举
+enum ConfigType {
+  /// 默认配置
+  DEFAULT
+  /// 自定义配置
+  CUSTOM
+}
+
+/// 接入协议枚举
+enum ProtocolType {
+  /// MQTT协议
+  MQTT
+  /// TCP协议
+  TCP
+  /// UDP协议
+  UDP
+  /// CoAP协议
+  COAP
+  /// HTTP协议
+  HTTP
+}
+
+/// 设备状态枚举
+enum DeviceStatus {
+  /// 在线状态
+  ONLINE
+  /// 离线状态
+  OFFLINE
+  /// 异常状态
+  ERROR
+}
+
+/// 命令状态枚举
+enum CommandStatus {
+  /// 已发送
+  SENT
+  /// 已接收
+  RECEIVED
+  /// 已执行
+  EXECUTED
+  /// 执行失败
+  FAILED
+}
+
+/// 告警级别枚举
+enum AlarmLevel {
+  /// 信息
+  INFO
+  /// 警告
+  WARNING
+  /// 严重
+  SEVERE
+  /// 致命
+  FATAL
+}
+
+/// 触发方式枚举
+enum TriggerType {
+  /// 设备触发
+  DEVICE
+  /// 属性触发
+  PROPERTY
+}
+
+/// 目标类型枚举
+enum TargetType {
+  /// 设备
+  DEVICE
+  /// 网关
+  GATEWAY
+  /// 网关下属设备
+  GATEWAY_CHILD
+}
+
+/// 任务类型枚举
+enum TaskType {
+  /// 自定义数据下发
+  CUSTOM_DATA
+  /// 属性设置
+  PROPERTY_SET
+}
+
+/// 定时方式枚举
+enum ScheduleType {
+  /// 单次执行
+  ONCE
+  /// 间隔时间重复
+  INTERVAL
+  /// 指定时间执行
+  SPECIFIED_TIME
+  /// Cron表达式
+  CRON
+}
+
+/// 执行方式枚举
+enum ExecuteType {
+  /// 立即执行
+  IMMEDIATE
+  /// 定时执行
+  SCHEDULED
+}
+
+/// 执行状态枚举
+enum ExecutionStatus {
+  /// 成功
+  SUCCESS
+  /// 失败
+  FAILED
+  /// 进行中
+  IN_PROGRESS
+}
+
+/// 视频流获取方式枚举
+enum StreamType {
+  /// WebSocket
+  WEBSOCKET
+  /// HTTP
+  HTTP
+}
+
+/// 连接类型枚举
+enum ConnectionType {
+  /// 连接
+  CONNECT
+  /// 断开
+  DISCONNECT
+}
+
+/// 审计日志级别枚举
+enum AuditLogLevel {
+  /// 信息级别
+  INFO
+  /// 警告级别
+  WARNING
+  /// 错误级别
+  ERROR
+  /// 严重级别
+  CRITICAL
+}
+
+/// 用户表
+model User {
+  /// 用户ID，主键
+  id        String   @id @default(uuid()) @db.Uuid
+  /// 用户名，唯一
+  username  String   @unique
+  /// 加密密码
+  password  String
+  /// 电子邮件，唯一
+  email     String   @unique
+  /// 姓名
+  name      String
+  /// 头像URL
+  avatar    String?
+  /// 电话
+  phone     String?
+  /// 是否激活
+  isActive  Boolean  @default(true)
+  /// 最后登录时间
+  lastLogin DateTime?
+  /// 创建时间
+  createdAt DateTime @default(now())
+  /// 更新时间
+  updatedAt DateTime @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  /// 关联角色ID
+  roleId         String       @db.Uuid
+  /// 关联角色
+  role           Role         @relation(fields: [roleId], references: [id])
+  
+  /// 用户确认的告警
+  confirmedAlarms DeviceAlarm[]
+  /// 用户创建的场景
+  createdScenes   Scene[]
+  /// 用户创建的报表配置
+  createdReports  ReportConfig[]
+  /// 用户创建的大屏
+  createdDashboards Dashboard[]
+  /// 用户偏好设置
+  preference      UserPreference?
+  /// API访问日志
+  apiAccessLogs   ApiAccessLog[]
+
+  @@index([username])
+  @@index([email])
+}
+
+/// 用户偏好设置表
+model UserPreference {
+  /// 偏好设置ID，主键
+  id              String   @id @default(uuid()) @db.Uuid
+  /// 关联用户ID
+  userId          String   @unique @db.Uuid
+  /// 关联用户
+  user            User     @relation(fields: [userId], references: [id])
+  /// 主题设置
+  theme           String?
+  /// 语言设置
+  language        String?
+  /// 大屏布局配置，JSON格式
+  dashboardLayout Json?
+  /// 通知设置，JSON格式
+  notifications   Json?
+  /// 创建时间
+  createdAt       DateTime @default(now())
+  /// 更新时间
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/// 角色表
+model Role {
+  /// 角色ID，主键
+  id          String   @id @default(uuid()) @db.Uuid
+  /// 角色名称，唯一
+  name        String   @unique
+  /// 角色描述
+  description String?
+  /// 创建时间
+  createdAt   DateTime @default(now())
+  /// 更新时间
+  updatedAt   DateTime @updatedAt
+
+  /// 关联用户
+  users           User[]
+  /// 角色权限关联
+  rolePermissions RolePermission[]
+}
+
+/// 权限表
+model Permission {
+  /// 权限ID，主键
+  id          String   @id @default(uuid()) @db.Uuid
+  /// 权限名称，唯一
+  name        String   @unique
+  /// 权限编码，唯一
+  code        String   @unique
+  /// 权限描述
+  description String?
+  /// 创建时间
+  createdAt   DateTime @default(now())
+  /// 更新时间
+  updatedAt   DateTime @updatedAt
+
+  /// 角色权限关联
+  rolePermissions RolePermission[]
+}
+
+/// 角色权限关联表
+model RolePermission {
+  /// 关联ID，主键
+  id           String     @id @default(uuid()) @db.Uuid
+  /// 关联角色ID
+  roleId       String     @db.Uuid
+  /// 关联角色
+  role         Role       @relation(fields: [roleId], references: [id])
+  /// 关联权限ID
+  permissionId String     @db.Uuid
+  /// 关联权限
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  /// 创建时间
+  createdAt    DateTime   @default(now())
+  /// 更新时间
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([roleId, permissionId])
+}
+
+/// 组织表
+model Organization {
+  /// 组织ID，主键
+  id          String   @id @default(uuid()) @db.Uuid
+  /// 组织名称
+  name        String
+  /// 组织编码，唯一
+  code        String   @unique
+  /// 组织级别
+  level       Int
+  /// 上级组织ID
+  parentId    String?  @db.Uuid
+  /// 上级组织
+  parent      Organization? @relation("OrganizationToOrganization", fields: [parentId], references: [id])
+  /// 下级组织
+  children    Organization[] @relation("OrganizationToOrganization")
+  /// 组织描述
+  description String?
+  /// 创建时间
+  createdAt   DateTime @default(now())
+  /// 更新时间
+  updatedAt   DateTime @updatedAt
+
+  /// 关联用户
+  users        User[]
+  /// 关联设备类
+  deviceClasses DeviceClass[]
+  /// 关联设备
+  devices      Device[]
+  /// 关联场景
+  scenes       Scene[]
+  /// 关联任务
+  tasks        Task[]
+  /// 关联报表配置
+  reportConfigs ReportConfig[]
+  /// 关联视频配置
+  videoConfigs  VideoConfig[]
+  /// 关联大屏配置
+  dashboards    Dashboard[]
+}
+
+/// 设备类表
+model DeviceClass {
+  /// 设备类ID，主键
+  id             String      @id @default(uuid()) @db.Uuid
+  /// 产品名称
+  name           String
+  /// 图片URL
+  image          String?
+  /// 产品品类
+  category       String
+  /// 设备类型：直连设备/网关子设备
+  type           DeviceType
+  /// 配置类型：默认/自定义
+  configType     ConfigType
+  /// 接入协议：MQTT/TCP/UDP/CoAP/HTTP
+  protocol       ProtocolType
+  /// 默认配置，JSON格式
+  defaultConfig  Json
+  /// 描述
+  description    String?
+  /// 是否为默认设备类
+  isDefault      Boolean     @default(false)
+  /// 是否公开
+  isPublic       Boolean     @default(false)
+  /// 创建时间
+  createdAt      DateTime    @default(now())
+  /// 更新时间
+  updatedAt      DateTime    @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  /// 关联设备
+  devices        Device[]
+
+  @@index([name])
+  @@index([organizationId])
+}
+
+/// 设备表
+model Device {
+  /// 设备ID，主键
+  id                String       @id @default(uuid()) @db.Uuid
+  /// 设备名称
+  name              String
+  /// 设备别名
+  alias             String?
+  /// 设备状态：在线/离线/异常
+  status            DeviceStatus @default(OFFLINE)
+  /// 设备配置，JSON格式
+  config            Json
+  /// 是否公开
+  isPublic          Boolean      @default(false)
+  /// 是否重点关注
+  isFeatured        Boolean      @default(false)
+  /// 最后连接时间
+  lastConnected     DateTime?
+  /// 最后断开时间
+  lastDisconnected  DateTime?
+  /// 创建时间
+  createdAt         DateTime     @default(now())
+  /// 更新时间
+  updatedAt         DateTime     @updatedAt
+
+  /// 关联设备类ID
+  deviceClassId   String      @db.Uuid
+  /// 关联设备类
+  deviceClass     DeviceClass @relation(fields: [deviceClassId], references: [id])
+  /// 关联组织ID
+  organizationId  String      @db.Uuid
+  /// 关联组织
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  /// 关联父设备ID（网关设备ID）
+  parentId        String?     @db.Uuid
+  /// 关联父设备（网关设备）
+  parent          Device?     @relation("DeviceToDevice", fields: [parentId], references: [id])
+  /// 子设备
+  children        Device[]    @relation("DeviceToDevice")
+  
+  /// 设备命令记录
+  commands        DeviceCommand[]
+  /// 设备事件
+  events          DeviceEvent[]
+  /// 设备告警
+  alarms          DeviceAlarm[]
+  /// 设备连接记录
+  connections     DeviceConnection[]
+
+  @@index([name])
+  @@index([status])
+  @@index([organizationId])
+  @@index([deviceClassId])
+}
+
+/// 设备命令记录表
+model DeviceCommand {
+  /// 命令ID，主键
+  id              String        @id @default(uuid()) @db.Uuid
+  /// 命令类型
+  type            String
+  /// 命令内容，JSON格式
+  content         Json
+  /// 响应类型
+  responseType    String?
+  /// 响应内容，JSON格式
+  responseContent Json?
+  /// 命令状态：已发送/已接收/已执行/执行失败
+  status          CommandStatus @default(SENT)
+  /// 创建时间
+  createdAt       DateTime      @default(now())
+  /// 更新时间
+  updatedAt       DateTime      @updatedAt
+
+  /// 关联设备ID
+  deviceId        String        @db.Uuid
+  /// 关联设备
+  device          Device        @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId])
+  @@index([status])
+}
+
+/// 设备事件表
+model DeviceEvent {
+  /// 事件ID，主键
+  id         String   @id @default(uuid()) @db.Uuid
+  /// 标识符
+  identifier String
+  /// 事件名称
+  name       String
+  /// 事件类型
+  type       String
+  /// 输出参数，JSON格式
+  params     Json
+  /// 创建时间
+  createdAt  DateTime @default(now())
+  /// 更新时间
+  updatedAt  DateTime @updatedAt
+
+  /// 关联设备ID
+  deviceId   String   @db.Uuid
+  /// 关联设备
+  device     Device   @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId])
+  @@index([type])
+}
+
+/// 设备告警表
+model DeviceAlarm {
+  /// 告警ID，主键
+  id           String     @id @default(uuid()) @db.Uuid
+  /// 告警级别：信息/警告/严重/致命
+  level        AlarmLevel
+  /// 告警详情
+  content      String
+  /// 是否已确认
+  isConfirmed  Boolean    @default(false)
+  /// 确认时间
+  confirmedAt  DateTime?
+  /// 创建时间
+  createdAt    DateTime   @default(now())
+  /// 更新时间
+  updatedAt    DateTime   @updatedAt
+
+  /// 关联设备ID
+  deviceId     String     @db.Uuid
+  /// 关联设备
+  device       Device     @relation(fields: [deviceId], references: [id])
+  /// 关联场景ID
+  sceneId      String?    @db.Uuid
+  /// 关联场景
+  scene        Scene?     @relation(fields: [sceneId], references: [id])
+  /// 确认用户ID
+  confirmedBy  String?    @db.Uuid
+  /// 确认用户
+  confirmedUser User?      @relation(fields: [confirmedBy], references: [id])
+
+  @@index([deviceId])
+  @@index([level])
+  @@index([isConfirmed])
+}
+
+/// 设备连接记录表
+model DeviceConnection {
+  /// 连接记录ID，主键
+  id             String         @id @default(uuid()) @db.Uuid
+  /// 连接类型：连接/断开
+  connectionType ConnectionType
+  /// IP地址
+  ipAddress      String?
+  /// 连接/断开时间
+  connectionTime DateTime
+  /// 原因
+  reason         String?
+  /// 创建时间
+  createdAt      DateTime       @default(now())
+  /// 更新时间
+  updatedAt      DateTime       @updatedAt
+
+  /// 关联设备ID
+  deviceId       String         @db.Uuid
+  /// 关联设备
+  device         Device         @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, connectionTime])
+}
+
+/// 场景联动表
+model Scene {
+  /// 场景ID，主键
+  id             String      @id @default(uuid()) @db.Uuid
+  /// 场景联动名称
+  name           String
+  /// 触发方式：设备触发/属性触发
+  triggerType    TriggerType
+  /// 状态：启用/禁用
+  status         Boolean     @default(true)
+  /// 描述
+  description    String?
+  /// 是否公开
+  isPublic       Boolean     @default(false)
+  /// 创建时间
+  createdAt      DateTime    @default(now())
+  /// 更新时间
+  updatedAt      DateTime    @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  /// 创建用户ID
+  createdBy      String       @db.Uuid
+  /// 创建用户
+  creator        User         @relation(fields: [createdBy], references: [id])
+  
+  /// 触发器
+  triggers       Trigger[]
+  /// 设备告警
+  deviceAlarms   DeviceAlarm[]
+
+  @@index([name])
+  @@index([organizationId])
+}
+
+/// 触发器表
+model Trigger {
+  /// 触发器ID，主键
+  id                 String   @id @default(uuid()) @db.Uuid
+  /// 触发条件，JSON格式
+  condition          Json
+  /// 执行动作，JSON格式
+  action             Json
+  /// 执行条件，JSON格式
+  executionCondition Json?
+  /// 创建时间
+  createdAt          DateTime @default(now())
+  /// 更新时间
+  updatedAt          DateTime @updatedAt
+
+  /// 关联场景ID
+  sceneId            String   @db.Uuid
+  /// 关联场景
+  scene              Scene    @relation(fields: [sceneId], references: [id])
+
+  @@index([sceneId])
+}
+
+/// 任务表
+model Task {
+  /// 任务ID，主键
+  id             String       @id @default(uuid()) @db.Uuid
+  /// 任务名称
+  name           String
+  /// 目标类型：设备/网关/网关下属设备
+  targetType     TargetType
+  /// 任务状态：启用/停用
+  status         Boolean      @default(true)
+  /// 任务类型：自定义数据下发/属性设置
+  taskType       TaskType
+  /// 定时方式：单次执行/间隔时间重复/指定时间执行/Cron表达式
+  scheduleType   ScheduleType
+  /// 定时配置，JSON格式
+  scheduleConfig Json
+  /// 执行参数，JSON格式
+  params         Json?
+  /// 命令内容，JSON格式
+  commandContent Json
+  /// 是否公开
+  isPublic       Boolean      @default(false)
+  /// 创建时间
+  createdAt      DateTime     @default(now())
+  /// 更新时间
+  updatedAt      DateTime     @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  /// 任务执行记录
+  executions     TaskExecution[]
+
+  @@index([name])
+  @@index([status])
+  @@index([organizationId])
+}
+
+/// 任务执行记录表
+model TaskExecution {
+  /// 执行记录ID，主键
+  id          String          @id @default(uuid()) @db.Uuid
+  /// 执行状态：成功/失败/进行中
+  status      ExecutionStatus @default(IN_PROGRESS)
+  /// 执行结果，JSON格式
+  result      Json?
+  /// 错误信息
+  error       String?
+  /// 开始时间
+  startedAt   DateTime
+  /// 完成时间
+  completedAt DateTime?
+  /// 创建时间
+  createdAt   DateTime        @default(now())
+
+  /// 关联任务ID
+  taskId      String          @db.Uuid
+  /// 关联任务
+  task        Task            @relation(fields: [taskId], references: [id])
+
+  @@index([taskId])
+  @@index([status])
+}
+
+/// 报表配置表
+model ReportConfig {
+  /// 配置ID，主键
+  id                 String      @id @default(uuid()) @db.Uuid
+  /// 配置名称
+  name               String
+  /// 描述
+  description        String?
+  /// 数据类型
+  dataType           String
+  /// 配置状态：启用/停用
+  status             Boolean     @default(true)
+  /// 执行方式：立即执行/定时执行
+  executeType        ExecuteType
+  /// 执行时间配置，JSON格式
+  scheduleConfig     Json?
+  /// 设备ID数组
+  deviceIds          Json // 存储UUID数组
+  /// 聚合条件，JSON格式
+  aggregateCondition Json
+  /// 最大条数限制
+  maxRecords         Int
+  /// 创建时间
+  createdAt          DateTime    @default(now())
+  /// 更新时间
+  updatedAt          DateTime    @updatedAt
+
+  /// 关联组织ID
+  organizationId     String       @db.Uuid
+  /// 关联组织
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  /// 创建用户ID
+  createdBy          String       @db.Uuid
+  /// 创建用户
+  creator            User         @relation(fields: [createdBy], references: [id])
+  
+  /// 报表
+  reports            Report[]
+
+  @@index([organizationId])
+}
+
+/// 报表表
+model Report {
+  /// 报表ID，主键
+  id          String          @id @default(uuid()) @db.Uuid
+  /// 执行方式：立即执行/定时执行
+  executeType ExecuteType
+  /// 执行状态：成功/失败/进行中
+  status      ExecutionStatus @default(IN_PROGRESS)
+  /// 报表数据，JSON格式
+  data        Json?
+  /// 报表文件路径
+  filePath    String?
+  /// 执行日期
+  executeDate DateTime
+  /// 创建时间
+  createdAt   DateTime        @default(now())
+  /// 更新时间
+  updatedAt   DateTime        @updatedAt
+
+  /// 关联报表配置ID
+  configId    String          @db.Uuid
+  /// 关联报表配置
+  config      ReportConfig    @relation(fields: [configId], references: [id])
+
+  @@index([configId])
+  @@index([status])
+}
+
+/// 视频配置表
+model VideoConfig {
+  /// 视频配置ID，主键
+  id             String     @id @default(uuid()) @db.Uuid
+  /// 视频名称
+  name           String
+  /// 视频封面URL
+  cover          String?
+  /// 摄像头编号/监控点编号
+  cameraCode     String
+  /// 视频流地址
+  streamUrl      String
+  /// 视频流获取方式：WebSocket/HTTP
+  streamType     StreamType
+  /// 状态：启用/停用
+  status         Boolean    @default(true)
+  /// 创建时间
+  createdAt      DateTime   @default(now())
+  /// 更新时间
+  updatedAt      DateTime   @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+/// 平台定制表
+model PlatformCustomization {
+  /// 定制ID，主键
+  id               String   @id @default(uuid()) @db.Uuid
+  /// 公司名称
+  companyName      String
+  /// 公司简称
+  companyShortName String
+  /// 公司官网
+  website          String?
+  /// 公司邮箱
+  email            String?
+  /// 公司简介
+  description      String?
+  /// 国家/地区
+  country          String?
+  /// 所在城市
+  city             String?
+  /// 详细地址
+  address          String?
+  /// 联系人
+  contactPerson    String?
+  /// 联系电话
+  contactPhone     String?
+  /// 联系我们信息
+  contactInfo      String?
+  /// Logo URL
+  logo             String?
+  /// 网站图标URL
+  favicon          String?
+  /// 主题色
+  primaryColor     String?
+  /// 创建时间
+  createdAt        DateTime @default(now())
+  /// 更新时间
+  updatedAt        DateTime @updatedAt
+}
+
+/// API访问日志表
+model ApiAccessLog {
+  /// 日志ID，主键
+  id           String   @id @default(uuid()) @db.Uuid
+  /// API端点
+  endpoint     String
+  /// HTTP方法
+  method       String
+  /// 状态码
+  statusCode   Int
+  /// IP地址
+  ipAddress    String
+  /// 用户代理
+  userAgent    String?
+  /// 请求体，JSON格式
+  requestBody  Json?
+  /// 响应时间，毫秒
+  responseTime Int
+  /// 访问时间
+  timestamp    DateTime @default(now())
+  /// 创建时间
+  createdAt    DateTime @default(now())
+
+  /// 关联用户ID
+  userId       String?  @db.Uuid
+  /// 关联用户
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([endpoint])
+  @@index([statusCode])
+  @@index([timestamp])
+  @@index([userId])
+}
+
+/// 大屏配置表
+model Dashboard {
+  /// 大屏ID，主键
+  id             String   @id @default(uuid()) @db.Uuid
+  /// 大屏名称
+  name           String
+  /// 描述
+  description    String?
+  /// 布局配置，JSON格式
+  layout         Json
+  /// 组件配置，JSON格式
+  widgets        Json
+  /// 是否默认大屏
+  isDefault      Boolean  @default(false)
+  /// 是否公开
+  isPublic       Boolean  @default(false)
+  /// 创建时间
+  createdAt      DateTime @default(now())
+  /// 更新时间
+  updatedAt      DateTime @updatedAt
+
+  /// 关联组织ID
+  organizationId String       @db.Uuid
+  /// 关联组织
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  /// 创建用户ID
+  createdBy      String       @db.Uuid
+  /// 创建用户
+  creator        User         @relation(fields: [createdBy], references: [id])
+
+  @@index([organizationId, isDefault])
+}
+
+/// 审计日志表
+model AuditLog {
+  /// 日志ID，主键
+  id           String        @id @default(uuid()) @db.Uuid
+  /// 用户ID
+  userId       String?       @db.Uuid
+  /// 用户名
+  username     String?
+  /// 事件类型
+  eventType    String
+  /// 日志级别
+  level        AuditLogLevel @default(INFO)
+  /// 资源类型
+  resourceType String?
+  /// 资源ID
+  resourceId   String?
+  /// 事件描述
+  description  String
+  /// IP地址
+  ipAddress    String?
+  /// 用户代理
+  userAgent    String?
+  /// 详细信息，JSON格式
+  details      Json?
+  /// 时间戳
+  timestamp    DateTime      @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([level])
+  @@index([resourceType])
+  @@index([timestamp])
+} 

@@ -1,0 +1,123 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台物联网协议支持
+
+## 支持的物联网协议
+
+### MQTT协议
+- **实现库**：MQTT.js
+- **功能**：
+  - MQTT Broker连接管理
+  - 主题订阅与发布
+  - QoS级别支持（0、1、2）
+  - 遗嘱消息（Last Will）
+  - 保留消息（Retained Message）
+  - 会话持久化
+- **使用场景**：
+  - 低带宽、低功耗设备通信
+  - 实时数据上报
+  - 设备状态监控
+  - 命令下发
+
+### TCP/UDP协议
+- **实现库**：Node.js net和dgram模块
+- **功能**：
+  - TCP服务器和客户端
+  - UDP服务器和客户端
+  - 自定义协议解析
+  - 连接管理
+  - 数据缓冲处理
+- **使用场景**：
+  - 传统工业设备接入
+  - 自定义协议设备接入
+  - 大数据量传输
+
+### CoAP协议
+- **实现库**：node-coap
+- **功能**：
+  - CoAP服务器和客户端
+  - 请求/响应模式
+  - 资源发现
+  - 观察资源（Observe）
+- **使用场景**：
+  - 资源受限设备
+  - RESTful风格通信
+  - 低功耗广域网设备
+
+### HTTP/HTTPS协议
+- **实现库**：Node.js http/https模块、Axios
+- **功能**：
+  - RESTful API
+  - Webhook回调
+  - 文件上传/下载
+  - 长轮询
+- **使用场景**：
+  - 设备配置管理
+  - 固件更新
+  - 批量数据上传
+  - 第三方系统集成
+
+## 视频流协议
+
+### 流媒体协议
+- **实现示例**：C:\code_sum\iot_nodered_rtmp_rtsp\document\react-demo
+- **功能**：
+  - 视频流分发
+- **使用场景**：
+  - IP摄像头接入
+  - 视频监控
+  - 实时视频分析
+
+## 设备接入流程
+
+### 直连设备接入流程
+1. 设备通过MQTT/HTTP/CoAP连接到平台
+2. 设备进行身份认证
+3. 平台验证设备身份
+4. 建立双向通信通道
+5. 设备上报数据，平台下发命令
+
+### 网关设备接入流程
+1. 网关通过MQTT/TCP/UDP连接到平台
+2. 网关进行身份认证
+3. 平台验证网关身份
+4. 网关上报子设备信息
+5. 平台与网关之间建立双向通信通道
+6. 子设备通过网关与平台交互数据
+
+### 视频设备接入流程
+按C:\code_sum\iot_nodered_rtmp_rtsp\document\react-demo示例，直接应用
+
+## 协议适配器设计
+
+### 适配器接口
+```typescript
+interface ProtocolAdapter {
+  // 初始化适配器
+  initialize(): Promise<void>;
+  
+  // 启动适配器
+  start(): Promise<void>;
+  
+  // 停止适配器
+  stop(): Promise<void>;
+  
+  // 发送数据到设备
+  sendToDevice(deviceId: string, data: any): Promise<void>;
+  
+  // 设置数据接收回调
+  onDataReceived(callback: (deviceId: string, data: any) => void): void;
+  
+  // 设置连接状态回调
+  onConnectionStatusChanged(callback: (deviceId: string, status: boolean) => void): void;
+}
+```
+
+### 协议转换
+- 各协议适配器将不同协议的数据转换为统一的内部数据模型
+- 内部数据模型包含设备标识、数据类型、时间戳、数据内容等信息
+- 下发命令时，将内部命令模型转换为特定协议格式
+

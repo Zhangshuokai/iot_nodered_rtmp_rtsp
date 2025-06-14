@@ -1,0 +1,89 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台数据库设计
+
+## 数据库选型
+- **主数据库**：PostgreSQL 15.x
+- **时序数据扩展**：TimescaleDB
+- **ORM工具**：Prisma ORM
+
+## 主要数据表结构
+
+### 用户与权限相关表
+- **用户表(User)**：存储用户信息，包括用户名、密码、邮箱等
+- **角色表(Role)**：定义用户角色
+- **权限表(Permission)**：定义系统权限
+- **角色权限关联表(RolePermission)**：角色和权限的多对多关系
+
+### 组织相关表
+- **组织表(Organization)**：存储组织结构信息
+
+### 设备相关表
+- **设备类表(DeviceClass)**：定义设备类型、通信协议、参数等
+- **设备表(Device)**：存储具体设备信息
+- **设备命令记录表(DeviceCommand)**：记录设备命令下发情况
+- **设备事件表(DeviceEvent)**：记录设备事件
+- **设备告警表(DeviceAlarm)**：记录设备告警信息
+- **设备连接记录表(DeviceConnection)**：记录设备连接和断开情况
+
+### 规则引擎相关表
+- **场景联动表(Scene)**：定义场景联动规则
+- **触发器表(Trigger)**：定义触发条件和执行动作
+
+### 任务中心相关表
+- **任务表(Task)**：定义任务信息
+- **任务执行记录表(TaskExecution)**：记录任务执行情况
+
+### 报表中心相关表
+- **报表配置表(ReportConfig)**：定义报表配置
+- **报表表(Report)**：存储生成的报表
+
+### 视频中心相关表
+- **视频配置表(VideoConfig)**：定义视频源配置
+
+### 系统管理相关表
+- **平台定制表(PlatformCustomization)**：存储平台定制信息
+- **API访问日志表(ApiAccessLog)**：记录API访问情况
+
+### 可视化大屏相关表
+- **大屏配置表(Dashboard)**：存储大屏配置信息
+
+### 设备数据表(TimescaleDB)
+- **设备时序数据表(DeviceData)**：存储设备上报的时序数据
+
+## 数据库关系图
+
+```mermaid
+erDiagram
+    User ||--o{ DeviceAlarm : "confirms"
+    User ||--o{ Scene : "creates"
+    User ||--o{ ReportConfig : "creates"
+    User ||--o{ Dashboard : "creates"
+    User }o--|| Organization : "belongs to"
+    User }o--|| Role : "has"
+    
+    Role }o--o{ Permission : "has"
+    
+    Organization ||--o{ Organization : "parent-child"
+    Organization ||--o{ DeviceClass : "owns"
+    Organization ||--o{ Device : "owns"
+    Organization ||--o{ Scene : "owns"
+    Organization ||--o{ Task : "owns"
+    
+    DeviceClass ||--o{ Device : "defines"
+    Device ||--o{ Device : "gateway-child"
+    Device ||--o{ DeviceCommand : "receives"
+    Device ||--o{ DeviceEvent : "generates"
+    Device ||--o{ DeviceAlarm : "triggers"
+    Device ||--o{ DeviceData : "produces"
+    
+    Scene ||--o{ Trigger : "contains"
+    Scene ||--o{ DeviceAlarm : "triggers"
+    
+    Task ||--o{ TaskExecution : "has"
+    
+    ReportConfig ||--o{ Report : "generates"
+

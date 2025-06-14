@@ -1,0 +1,82 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台架构设计
+
+## 系统架构
+准望物联监测平台采用基于Next.js的全栈架构，包含前端界面和后端API服务。
+
+```mermaid
+graph TD
+    Client[客户端浏览器] --> NextJS[Next.js应用]
+    IoTDevices[物联网设备] --> |MQTT/TCP/UDP/CoAP/HTTP| IoTGateway[物联网网关]
+    Cameras[摄像头] --> |使用ws://或http://的流媒体| StreamServer[流媒体服务器]
+    
+    IoTGateway --> NextJS
+    StreamServer --> NextJS
+    
+    NextJS --> |API Routes| BackendServices[后端服务]
+    NextJS --> |React Components| FrontendUI[前端UI]
+    
+    BackendServices --> Database[(PostgreSQL/TimescaleDB)]
+
+    
+    subgraph "Next.js应用"
+        FrontendUI
+        BackendServices
+    end
+```
+
+## 数据流设计
+
+### 设备数据流
+1. 设备通过MQTT、TCP、UDP、CoAP或HTTP协议连接到平台
+2. 设备数据上报到平台后，存储到TimescaleDB时序数据库
+3. 数据可被用于实时展示、触发规则、生成报表、作为任务执行依据
+
+### 视频数据流
+1. 摄像头通过使用ws://或http://的流媒体协议接入平台
+2. 视频流数据实时展示在视频中心
+
+### 命令控制流
+1. 用户通过平台界面下发命令
+2. 命令通过平台传递给目标设备
+3. 设备执行命令并返回结果
+4. 结果记录在设备管理的命令下发记录中
+
+## 子系统关系
+
+```mermaid
+graph TD
+    DAS[设备接入子系统] -->|数据推送| DSS[数据存储与处理子系统]
+    DAS -->|事件触发| RES[规则引擎子系统]
+    
+    VSS[视频流处理子系统] -->|流数据| UIS[用户界面子系统]
+    
+    DSS -->|数据查询| UIS
+    DSS -->|数据分析结果| UIS
+    DSS -->|条件触发| RES
+    
+    RES -->|执行动作| DAS
+    RES -->|触发任务| TSS[任务调度子系统]
+    
+    TSS -->|任务执行| DAS
+    TSS -->|执行结果| DSS
+    
+    SMS[系统管理子系统] -->|权限控制| DAS
+    SMS -->|权限控制| VSS
+    SMS -->|权限控制| DSS
+    SMS -->|权限控制| RES
+    SMS -->|权限控制| TSS
+    SMS -->|权限控制| UIS
+    
+    UIS -->|用户操作| DAS
+    UIS -->|用户操作| VSS
+    UIS -->|用户操作| DSS
+    UIS -->|用户操作| RES
+    UIS -->|用户操作| TSS
+    UIS -->|用户操作| SMS
+```
+

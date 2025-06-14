@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台项目概述
+
+准望物联监测平台是基于Next.js框架的开箱即用物联网平台，用于实现物联网数据收集、分析处理、可视化和设备管理。
+
+## 核心技术栈
+- **前端**：React 18.x、TypeScript 5.x、TailwindCSS 3.x、Shadcn/UI、Zustand、React Query
+- **后端**：Next.js API Routes、Node.js 18.x LTS、Prisma ORM
+- **数据库**：PostgreSQL 15.x、TimescaleDB（时序数据库扩展）
+- **通信协议**：MQTT、TCP/UDP、CoAP、HTTP/HTTPS、WebSocket
+- **视频流处理**：使用ws://或http://的流媒体
+
+## 项目目录结构
+主要目录结构如下：
+- `app/`：Next.js App Router，基于文件系统的路由
+- `components/`：React组件，按功能模块分类
+- `lib/`：工具库，包含各种协议和功能的实现
+- `prisma/`：Prisma ORM相关文件，定义数据库模型
+- `hooks/`：React钩子，封装常用逻辑
+- `store/`：状态管理，使用Zustand实现
+- `types/`：TypeScript类型定义
+- `utils/`：通用工具函数
+
+## 子系统划分
+平台分为七个主要子系统：
+1. **设备接入子系统**：负责物联网设备的接入、认证、数据接收和指令下发
+2. **视频流处理子系统**：负责摄像头视频流的接入、转换和分发
+3. **数据存储与处理子系统**：负责设备数据的存储、处理和分析
+4. **规则引擎子系统**：负责场景联动规则的执行和触发
+5. **任务调度子系统**：负责任务的创建、调度和执行
+6. **用户界面子系统**：负责用户交互界面的渲染和响应
+7. **系统管理子系统**：负责平台配置、组织和权限管理
+

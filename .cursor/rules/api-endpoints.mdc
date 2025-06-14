@@ -1,0 +1,158 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台API端点设计
+
+## 设备接入子系统API
+
+### 设备认证API
+- `POST /api/devices/auth`：设备认证接口
+- `POST /api/devices/register`：设备注册接口
+
+### 数据接收API
+- `POST /api/devices/data`：设备数据上报接口
+- `POST /api/devices/events`：设备事件上报接口
+- `POST /api/devices/status`：设备状态上报接口
+
+### 指令下发API
+- `POST /api/devices/commands`：向设备下发指令
+- `GET /api/devices/commands/:id`：查询指令执行状态
+
+## 视频流处理子系统API
+
+### 视频流管理API
+- `POST /api/streams`：创建视频流配置
+- `GET /api/streams`：获取视频流配置列表
+- `GET /api/streams/:id`：获取单个视频流配置
+- `PUT /api/streams/:id`：更新视频流配置
+- `DELETE /api/streams/:id`：删除视频流配置
+
+### 视频流处理API
+- `GET /api/streams/:id/ws`：建立WebSocket连接获取视频流
+- `GET /api/streams/:id/http`：通过HTTP获取视频流
+
+## 数据存储与处理子系统API
+
+### 数据查询API
+- `GET /api/data`：查询设备数据，支持时间范围和聚合函数
+- `GET /api/data/latest`：查询最新设备数据
+- `GET /api/data/statistics`：获取数据统计信息
+
+### 数据分析API
+- `POST /api/data/analysis`：执行数据分析任务
+- `GET /api/data/analysis/:id`：获取分析结果
+
+## 规则引擎子系统API
+
+### 场景联动API
+- `POST /api/rules/scenes`：创建场景联动
+- `GET /api/rules/scenes`：获取场景联动列表
+- `GET /api/rules/scenes/:id`：获取单个场景联动
+- `PUT /api/rules/scenes/:id`：更新场景联动
+- `DELETE /api/rules/scenes/:id`：删除场景联动
+- `POST /api/rules/scenes/:id/status`：启用/禁用场景联动
+
+### 触发器API
+- `POST /api/rules/triggers`：创建触发器
+- `GET /api/rules/triggers`：获取触发器列表
+- `GET /api/rules/triggers/:id`：获取单个触发器
+- `PUT /api/rules/triggers/:id`：更新触发器
+- `DELETE /api/rules/triggers/:id`：删除触发器
+
+## 任务调度子系统API
+
+### 任务管理API
+- `POST /api/tasks`：创建任务
+- `GET /api/tasks`：获取任务列表
+- `GET /api/tasks/:id`：获取单个任务
+- `PUT /api/tasks/:id`：更新任务
+- `DELETE /api/tasks/:id`：删除任务
+- `POST /api/tasks/:id/status`：启用/禁用任务
+
+### 任务执行API
+- `POST /api/tasks/:id/execute`：立即执行任务
+- `GET /api/tasks/:id/executions`：获取任务执行记录
+- `GET /api/tasks/:id/executions/:executionId`：获取任务执行详情
+
+## 用户界面子系统API
+
+### 大屏数据API
+- `GET /api/dashboard/data`：获取大屏数据
+- `GET /api/dashboard/widgets`：获取大屏组件配置
+
+### 用户偏好设置API
+- `POST /api/ui/preferences`：保存用户界面偏好设置
+- `GET /api/ui/preferences`：获取用户界面偏好设置
+
+### 实时通信API
+- `Socket.IO /socket`：建立Socket.IO连接
+- `Socket.IO Event: device-status`：设备状态更新事件
+- `Socket.IO Event: device-data`：设备数据更新事件
+- `Socket.IO Event: alarm`：告警事件
+- `Socket.IO Event: task-status`：任务状态更新事件
+
+## 系统管理子系统API
+
+### 平台定制API
+- `POST /api/system/customization`：更新平台定制信息
+- `GET /api/system/customization`：获取平台定制信息
+
+### 组织管理API
+- `POST /api/system/organizations`：创建组织
+- `GET /api/system/organizations`：获取组织列表
+- `GET /api/system/organizations/:id`：获取单个组织
+- `PUT /api/system/organizations/:id`：更新组织
+- `DELETE /api/system/organizations/:id`：删除组织
+
+### 用户管理API
+- `POST /api/system/users`：创建用户
+- `GET /api/system/users`：获取用户列表
+- `GET /api/system/users/:id`：获取单个用户
+- `PUT /api/system/users/:id`：更新用户
+- `DELETE /api/system/users/:id`：删除用户
+
+### 权限管理API
+- `POST /api/system/permissions`：创建权限
+- `GET /api/system/permissions`：获取权限列表
+- `GET /api/system/roles`：获取角色列表
+- `POST /api/system/roles/:id/permissions`：更新角色权限
+
+## 设备管理子系统API
+
+### 设备类管理API
+- `POST /api/device-classes`：创建设备类
+- `GET /api/device-classes`：获取设备类列表
+- `GET /api/device-classes/:id`：获取单个设备类
+- `PUT /api/device-classes/:id`：更新设备类
+- `DELETE /api/device-classes/:id`：删除设备类
+- `POST /api/device-classes/:id/default`：设置默认设备类
+
+### 设备管理API
+- `POST /api/devices`：创建设备
+- `GET /api/devices`：获取设备列表
+- `GET /api/devices/:id`：获取单个设备
+- `PUT /api/devices/:id`：更新设备
+- `DELETE /api/devices/:id`：删除设备
+- `GET /api/devices/:id/status`：获取设备状态
+- `GET /api/devices/:id/alarms`：获取设备告警
+- `GET /api/devices/:id/commands`：获取设备命令记录
+- `GET /api/devices/:id/events`：获取设备事件
+- `GET /api/devices/:id/tasks`：获取设备关联任务
+
+## 报表中心子系统API
+
+### 报表配置API
+- `POST /api/reports/configs`：创建报表配置
+- `GET /api/reports/configs`：获取报表配置列表
+- `GET /api/reports/configs/:id`：获取单个报表配置
+- `PUT /api/reports/configs/:id`：更新报表配置
+- `DELETE /api/reports/configs/:id`：删除报表配置
+
+### 报表生成API
+- `POST /api/reports/generate`：生成报表
+- `GET /api/reports`：获取报表列表
+- `GET /api/reports/:id`：获取单个报表
+- `GET /api/reports/:id/download`：下载报表
+

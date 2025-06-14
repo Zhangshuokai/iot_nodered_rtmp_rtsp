@@ -1,0 +1,113 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 准望物联监测平台前端组件设计
+
+## 前端技术栈
+- **React 18.x**：用于构建用户界面的JavaScript库
+- **TypeScript 5.x**：JavaScript的超集，提供静态类型检查
+- **TailwindCSS 3.x**：实用优先的CSS框架
+- **Shadcn/UI**：基于Radix UI的组件库
+- **Zustand**：轻量级状态管理库
+- **React Query**：用于数据获取、缓存和状态管理
+
+## 组件结构
+
+### 布局组件
+- **RootLayout**：应用根布局，包含导航栏和侧边栏
+- **DashboardLayout**：控制台布局，用于所有功能页面
+- **AuthLayout**：认证页面布局，用于登录和注册页面
+
+### UI组件
+- **Button**：按钮组件
+- **Input**：输入框组件
+- **Select**：选择器组件
+- **Checkbox**：复选框组件
+- **Switch**：开关组件
+- **Tabs**：标签页组件
+- **Table**：表格组件
+- **Modal**：模态框组件
+- **Toast**：提示组件
+- **Card**：卡片组件
+- **Form**：表单组件
+
+### 可视化组件
+- **LineChart**：折线图组件
+- **BarChart**：柱状图组件
+- **PieChart**：饼图组件
+- **GaugeChart**：仪表盘组件
+- **StatusIndicator**：状态指示器组件
+- **DataCard**：数据卡片组件
+- **MapView**：地图展示组件
+
+### 设备管理组件
+- **DeviceClassList**：设备类列表组件
+- **DeviceClassForm**：设备类表单组件
+- **DeviceList**：设备列表组件
+- **DeviceDetail**：设备详情组件
+- **DeviceForm**：设备表单组件
+- **DeviceAlarmList**：设备告警列表组件
+- **DeviceCommandList**：设备命令列表组件
+- **DeviceEventList**：设备事件列表组件
+
+### 规则引擎组件
+- **SceneList**：场景联动列表组件
+- **SceneForm**：场景联动表单组件
+- **TriggerForm**：触发器表单组件
+- **ConditionEditor**：条件编辑器组件
+- **ActionEditor**：动作编辑器组件
+
+### 任务中心组件
+- **TaskList**：任务列表组件
+- **TaskDetail**：任务详情组件
+- **TaskForm**：任务表单组件
+- **TaskExecutionList**：任务执行记录列表组件
+- **ScheduleConfig**：定时配置组件
+
+### 报表中心组件
+- **ReportConfigList**：报表配置列表组件
+- **ReportConfigForm**：报表配置表单组件
+- **ReportList**：报表列表组件
+- **ReportDetail**：报表详情组件
+- **ReportExport**：报表导出组件
+
+### 视频中心组件
+- **VideoPlayer**：视频播放器组件
+- **VideoGrid**：视频网格组件
+- **VideoConfigList**：视频配置列表组件
+- **VideoConfigForm**：视频配置表单组件
+
+### 系统管理组件
+- **CustomizationForm**：平台定制表单组件
+- **OrganizationTree**：组织树组件
+- **OrganizationForm**：组织表单组件
+- **UserList**：用户列表组件
+- **UserForm**：用户表单组件
+- **RoleList**：角色列表组件
+- **PermissionList**：权限列表组件
+
+## 页面组件
+
+### 认证页面
+- **LoginPage**：登录页面
+- **RegisterPage**：注册页面
+
+### 控制台页面
+- **DashboardPage**：可视化大屏页面
+- **DeviceClassListPage**：设备类列表页面
+- **DeviceClassDetailPage**：设备类详情页面
+- **DeviceListPage**：设备列表页面
+- **DeviceDetailPage**：设备详情页面
+- **SceneListPage**：场景联动列表页面
+- **SceneDetailPage**：场景联动详情页面
+- **TaskListPage**：任务列表页面
+- **TaskDetailPage**：任务详情页面
+- **ReportConfigListPage**：报表配置列表页面
+- **ReportListPage**：报表列表页面
+- **VideoDisplayPage**：视频展示页面
+- **VideoConfigListPage**：视频配置列表页面
+- **CustomizationPage**：平台定制页面
+- **OrganizationListPage**：组织列表页面
+
